@@ -1,18 +1,13 @@
 # Bakery_Through_CAM_Test
 
- ดึงมาจาก Roboflow : BU-detection Project [https://universe.roboflow.com/seatech-dozjd/bu-detection]
+ ดึงมาจาก Roboflow : BU-detection Project [https://universe.roboflow.com/university-ufvlh/bu_bakery_detection]
  
- Class : 5 Classes, ['canele', 'cookie', 'croissant', 'donut', 'pain chocolat'] 
+ Class : 3 Classes, ['cookie', 'croissant', 'donut'] 
  
- Train : 2 รอบ 
+ Train : 100,200 รอบ 
  
  Confusion Matrix : 
-  'canele' : 0.43
-  'cookie' : 0.88
-  'croissant' : 0.59
-  'donut' : 0.82
-  'pain chocolat' : 0.62
-
+[Will be updated.]
  
  # ปัญหา 
 : ภาพที่จับได้ยังไม่ตรงกันกับของจริง อย่าง 'คุ้กกี้'ของจริง คอมจัดให้เป็น 'โดนัท' 
