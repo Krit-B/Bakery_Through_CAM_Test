@@ -4,12 +4,13 @@
  
  Class : 3 Classes, ['cookie', 'croissant', 'donut'] 
  
- Train : 100,200 รอบ 
+ Train : 100 รอบ 
  
  Confusion Matrix : 
-[Will be updated.]
+![confusion_matrix (4)](https://github.com/Krit-B/Bakery_Through_CAM_Test/assets/116740296/81de1ce1-ec80-4677-bb4d-c9d11088dd78)
+
  
  # ปัญหา 
-: ภาพที่จับได้ยังไม่ตรงกันกับของจริง อย่าง 'คุ้กกี้'ของจริง คอมจัดให้เป็น 'โดนัท' 
+: ยังจับวัตถุอื่นเป็นขนมอยู่ อย่าง มือ เป็น ครัวซองค์
 	
-: คอมที่ทดสอบมี GPU ไม่เพียงพอให้ใช้ batch ที่มากขึ้นได้ ทำให้ใช้เวลาฝึกโมเดลนี้ค่อนข้างนาน (ใช้ 1 ชั่วโมงครึ่ง ต่อ 1 epoch)
+: Dataset ยังน้อยอยู่ (1300 รูป) อาจต้องเพิ่มรูปเพื่อป้องกันไม้ให้กราฟ Overfitting
