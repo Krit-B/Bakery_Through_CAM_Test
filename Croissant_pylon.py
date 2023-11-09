@@ -21,6 +21,7 @@ import numpy as np
 from PIL import Image, ImageFont
 # ลงvenv lib ด้วย -m pip install -r bakery_lib.txt
 
+#cv2.namedWindow("Object Detection", cv2.WINDOW_NORMAL)
 img_output = []
 
 class VideoCaptureThread(QThread):
@@ -34,11 +35,12 @@ class VideoCaptureThread(QThread):
 
         self.bakery_prices = {
             'cookie': 5,
-            'crossiant': 30,
-            'donut': 25,
+            'croissant': 30,
+            'donut': 23,
         }
         self.obj_lists_count = None
         self.total_price = None 
+        #self.window = cv2.namedWindow("Object Detection", cv2.WINDOW_NORMAL)
 
     def run(self):
 
@@ -68,10 +70,11 @@ class VideoCaptureThread(QThread):
 
 
                 frame = image.GetArray()
+                frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
 
-                cv2.namedWindow("Display_Image", cv2.WINDOW_NORMAL) 
-                cv2.imshow('Display_Image', frame)
-                cv2.waitKey(20)
+                #cv2.namedWindow("Display_Image", cv2.WINDOW_NORMAL) 
+                #cv2.imshow('Display_Image', frame)
+                #cv2.waitKey(20)
 
                 #object detection
                 frame_with_objects = self.detect_objects(frame)
@@ -100,12 +103,12 @@ class VideoCaptureThread(QThread):
         total_price = 0  # Initialize total price
 
         # Perform object detection using your YOLO model here
-        results = self.model.predict(frame, conf=0.8, show=True)
-
+        results = self.model.predict(frame, conf=0.7, show=True)
+        print('detection done')
         obj_lists = self.model.names  # Model Classes {0: 'cookie', 1: 'crossiant', 2: 'donut'}
         total_bakery = {
             'cookie':0,
-            'crossiant':0,
+            'croissant':0,
             'donut':0
             }
 
@@ -116,7 +119,7 @@ class VideoCaptureThread(QThread):
         if objs.shape[0] != 0:  # Check if object > 0 piece.
             for obj in objs:
                 detected_obj = obj_lists[int(obj.cls[0])]  # Change Object index to name.
-                if detected_obj == 'cookie' or 'crossiant' or 'donut':
+                if detected_obj == 'cookie' or 'croissant' or 'donut':
                     # Draw bounding boxes and labels on the frame
                     x0,y0,x1,y1 = obj.xyxy[0].astype(int)
                     print(x0,y0,x1,y1)
@@ -130,8 +133,10 @@ class VideoCaptureThread(QThread):
                         img_output = cv2.putText(img_output, detected_obj, (x0,y0-10), font, fontScale, color, thickness, cv2.LINE_AA)
                     
                 obj_lists_count[detected_obj] += 1
-        #cv2.imshow('img_output', img_output)
-        #cv2.waitKey(30)
+        #cv2.namedWindow("Object Detection", cv2.WINDOW_NORMAL)
+        print('show output done')
+        cv2.imshow("Object Detection", img_output)
+        cv2.waitKey(1)
     
         #TO RETURN BAKERY PIECES AND PRICES......
         for bread, quantity in obj_lists_count.items():
@@ -171,7 +176,6 @@ class MainWindow(QMainWindow):
         self.video_thread = VideoCaptureThread()
         self.video_thread.new_frame.connect(self.update_video_label)
         self.video_thread.start()
-
         
         #Add Bakery&Price Attribute
         self.show_item = None
@@ -179,8 +183,6 @@ class MainWindow(QMainWindow):
         self.items = None
         self.latest_frame = None
         self.captured_frame = None  
-        self.Bakery_price = self.video_thread.bakery_prices
-        self.obj_lists_count = self.video_thread.obj_lists_count
 
         #Set Layout
         self.page_layout = QVBoxLayout()
@@ -243,7 +245,7 @@ class MainWindow(QMainWindow):
         self.crossiant_name.setAutoFillBackground(True)
         self.crossiant_name.setPalette(palette)
         self.crossiant_name.setFont(_font)
-        self.crossiant_name.setText("<font color='white'>Crossiant</font>")
+        self.crossiant_name.setText("<font color='white'>Croissant</font>")
         self.bakery_row.addWidget(self.crossiant_name)
         self.bakery_row.addLayout(self.crossiant_result)
         
@@ -280,7 +282,7 @@ class MainWindow(QMainWindow):
         # self.setCentralWidget(self.cookie_price)
         self.cookie_price.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         self.cookie_price.setFont(_font)
-        self.cookie_cost = self.Bakery_price["cookie"]
+        self.cookie_cost = self.video_thread.bakery_prices["cookie"]
         self.cookie_price.setText(str(self.cookie_cost)+ " บาท/ชิ้น")
         
         self.cookie_total = QLabel(self)
@@ -306,7 +308,7 @@ class MainWindow(QMainWindow):
         # self.setCentralWidget(self.crossiant_price)
         self.crossiant_price.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         self.crossiant_price.setFont(_font)
-        self.crossiant_cost = self.Bakery_price["crossiant"]
+        self.crossiant_cost = self.video_thread.bakery_prices["croissant"]
         self.crossiant_price.setText(str(self.crossiant_cost)+ " บาท/ชิ้น")
 
         self.crossiant_total = QLabel(self)
@@ -331,7 +333,7 @@ class MainWindow(QMainWindow):
         # self.setCentralWidget(self.donut_price)
         self.donut_price.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         self.donut_price.setFont(_font)
-        self.donut_cost = self.Bakery_price["donut"]
+        self.donut_cost = self.video_thread.bakery_prices["donut"]
         self.donut_price.setText(str(self.donut_cost)+ " บาท/ชิ้น")
 
         self.donut_total = QLabel(self)
@@ -374,9 +376,10 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(self.page_layout)
         self.setCentralWidget(widget)
+
     
     def the_button_was_clicked(self):
-        self.video_thread.running = False
+        # self.video_thread.running = False
 
         self.obj_lists_count = self.video_thread.obj_lists_count
         self.total_price = self.video_thread.total_price
@@ -387,7 +390,7 @@ class MainWindow(QMainWindow):
         print(self.obj_lists_count,self.total_price)
 
         # Wait for the thread to finish
-        self.video_thread.wait()
+        # self.video_thread.wait()
 
     def update_ui(self):
         # Update the UI with the latest data
@@ -396,11 +399,11 @@ class MainWindow(QMainWindow):
         total_price = self.video_thread.total_price
         #Bakery Extract
         self.cookie_pcs.setText(f"{obj_lists_count['cookie']} ชิ้น")
-        self.crossiant_pcs.setText(f"{obj_lists_count['crossiant']} ชิ้น")
+        self.crossiant_pcs.setText(f"{obj_lists_count['croissant']} ชิ้น")
         self.donut_pcs.setText(f"{obj_lists_count['donut']} ชิ้น")
         self.price.setText(f"{total_price} บาท")
         self.cookie_total.setText(f"{obj_lists_count['cookie']*self.cookie_cost} บาท")
-        self.crossiant_total.setText(f"{obj_lists_count['crossiant']*self.crossiant_cost} บาท")
+        self.crossiant_total.setText(f"{obj_lists_count['croissant']*self.crossiant_cost} บาท")
         self.donut_total.setText(f"{obj_lists_count['donut']*self.donut_cost} บาท")
 
     @Slot(QImage)
@@ -409,7 +412,7 @@ class MainWindow(QMainWindow):
         pixmap = QPixmap.fromImage(frame) #img_output
 
         # Calculate the size for displaying the video with the desired width
-        desired_width = 950  # Change this to your desired width
+        desired_width = 600  # Change this to your desired width
         scaled_pixmap = pixmap.scaledToWidth(desired_width, Qt.SmoothTransformation)
 
         self.video_label.setPixmap(scaled_pixmap)
@@ -417,8 +420,11 @@ class MainWindow(QMainWindow):
     def resume_video_capture(self):
         self.update_ui_resume()
 
-        self.video_thread.running = True
-        self.video_thread.start()
+        #cv2.imshow("Object Detection", img_output)
+        #cv2.waitKey(1)
+
+        # self.video_thread.running = True
+        # self.video_thread.start()
 
     def update_ui_resume(self):
         #Bakery Extract
@@ -426,6 +432,9 @@ class MainWindow(QMainWindow):
         self.crossiant_pcs.setText("0 ชิ้น")
         self.donut_pcs.setText("0 ชิ้น")
         self.price.setText("0 บาท")
+        self.cookie_total.setText(f"0 บาท")
+        self.crossiant_total.setText(f"0 บาท")
+        self.donut_total.setText(f"0 บาท")
 
         # Tell the framework to redraw the UI
         self.update()
